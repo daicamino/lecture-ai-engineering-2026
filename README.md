@@ -28,7 +28,12 @@ AIエンジニアリング実践講座（AIE2026）の演習と宿題で使う�
 ```bash
 uv run pytest -q
 uv run python -m app.ask "LoRAとは何ですか？"
+uv run python -m app.ask --chat
+uv run python -m app.ask --compare-models gemini-3.5-flash-lite gemini-3.5-flash --question "LoRAとは何ですか？"
 ```
+
+`--chat` を付けると、質問を続けても会話履歴が保たれます。空行または `exit` で終了します。
+`--compare-models` と複数の `--question` を使うと、応答時間・トークン数・回答を並べて比較できます。比較はモデル数 × 質問数ぶん API を呼び出すため、無料枠のレート制限に注意してください。上限はモデルやアカウントごとに異なり、`429` が出た場合は少し待ってから再実行してください。詳しくは [第1回の演習資料](lectures/01/problem.md) を参照してください。
 
 詳しい手順は [lectures/01/problem.md](lectures/01/problem.md) を見てください。
 

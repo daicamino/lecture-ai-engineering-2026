@@ -82,7 +82,7 @@ GitHub の自分の fork で、`lec01` → `main` の PR を作成します。**
 | レベル | 内容 |
 |---|---|
 | 基礎 | 同じ質問を3回ずつ、モデルを変えて（`AIE_MODEL` 環境変数）、または temperature を変えて実行し、回答の違いを answer.md にまとめる |
-| 実装 | `app/ask.py` を改修し、会話履歴を保ったまま続けて質問できるようにする |
+| 実装 | `uv run python -m app.ask --chat` で対話モードを起動し、会話履歴を保ったまま続けて質問できるようにする（空行または `exit` で終了） |
 | 発展 | 応答時間とトークン数を計測し、複数のモデルや質問で比較する。無料枠のレート制限との関係も考察する |
 
 モデルの切り替え例：
@@ -91,4 +91,24 @@ GitHub の自分の fork で、`lec01` → `main` の PR を作成します。**
 AIE_MODEL=gemini-3.5-flash uv run python -m app.ask "LoRAとは何ですか？"
 ```
 
-temperature を変えるには、`generate_content` の `config` 引数を調べてみましょう。
+temperature は `--temperature` で指定できます。指定しない場合はモデルの既定値を使います。
+
+```bash
+uv run python -m app.ask --temperature 0.2 "LoRAとは何ですか？"
+uv run python -m app.ask --temperature 1.2 "LoRAとは何ですか？"
+```
+
+同じ質問で値を変えて実行し、回答の違いを比べてみましょう。指定できる値の範囲はモデルによって異なります。
+
+応答時間とトークン数を複数のモデル・質問で比較するには、`--compare-models` と `--question` を使います。質問は複数回指定できます。
+
+```bash
+uv run python -m app.ask \
+  --compare-models gemini-3.5-flash-lite gemini-3.5-flash \
+  --question "LoRAとは何ですか？" \
+  --question "temperatureとは何ですか？"
+```
+
+結果にはモデル・質問ごとの応答時間、入力／出力トークン数、回答が表示されます。応答時間はAPI呼び出し中の計測なので、ネットワークやモデルの混雑にも左右されます。より公平に比べるには同じ質問を各モデルに送り、複数回測って傾向を見ましょう。
+
+**無料枠のレート制限に注意：** モデル数を N、質問数を M とすると、この比較は N × M 回のAPIリクエストを行います。各リクエストがモデルごとのレート制限（例：1分あたりのリクエスト数やトークン数、1日あたりの上限）を消費するため、モデルや質問を増やしたり、繰り返し実行したりすると `429`（レート制限）になることがあります。発生したら少し待って再実行し、比較対象を絞ってください。上限はモデルやアカウントなどで異なり変更されるため、[Gemini API のレート制限](https://ai.google.dev/gemini-api/docs/rate-limits)で確認してください。`503` は混雑を示す場合があり、レート制限とは別の一時的なエラーです。
